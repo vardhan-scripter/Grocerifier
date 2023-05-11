@@ -17,7 +17,10 @@ router.get('/', passport.authenticate("jwt", {session: false}), (req, res) => {
             })
         } else {
             Profile.findOne({user: user._id}, "-_id -user -__v").populate('cards', "-_id -__v").then(profile => {
-                res.status(200).json(profile);
+                res.status(200).json({
+                    ...profile._doc,
+                    email: user.email
+                });
             }).catch(err => {
                 throw err;
             })
@@ -47,9 +50,10 @@ router.post('/update/', passport.authenticate("jwt", {session: false}), (req, re
                 profile.address2 = req.body.address2 || '';
 
                 // Updating updated profile in DB
-                profile.save().then(() => {
+                profile.save().then((updatedProfile) => {
                     res.status(200).json({
-                        message: "User updated successfully"
+                        ...updatedProfile._doc,
+                        email: user.email
                     });
                 }).catch(err => {
                     throw err;

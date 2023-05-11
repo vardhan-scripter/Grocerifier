@@ -81,7 +81,7 @@ router.post('/login', (req, res) => {
                             if (err) throw err;
                             res.status(200).json({
                                 username: user.username,
-                                token: token,
+                                token: 'Bearer ' + token,
                                 expiresIn: 3600,
                             })
                         }
