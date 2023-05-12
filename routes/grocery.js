@@ -51,7 +51,7 @@ router.get('/all', passport.authenticate('jwt', {session: false}), (req, res) =>
 //@access: PRIVATE
 //@description: Add grocery Item to cart
 router.post('/cart/add', passport.authenticate('jwt', {session: false}), (req, res) => {
-    GroceryItem.findById(req.body.id).then(item => {
+    GroceryItem.findById(req.body.productId).then(item => {
         if(item.availableCount < +req.body.count){
             res.status(404).json({
                 errorMessage: "Requested count of Items not available in groceries list"
@@ -63,7 +63,7 @@ router.post('/cart/add', passport.authenticate('jwt', {session: false}), (req, r
                         emailId: req.user.email,
                         items: [
                             {
-                                id: req.body.id,
+                                productId: req.body.productId,
                                 count: +req.body.count
                             }
                         ],
@@ -85,17 +85,17 @@ router.post('/cart/add', passport.authenticate('jwt', {session: false}), (req, r
                 }else{
                     let total = cart.total;
                     let cartItems = cart.items;
-                    const filterItem = cart.items.filter(cartItem => cartItem.id === req.body.id);
+                    const filterItem = cart.items.filter(cartItem => cartItem.productId === req.body.productId);
                     if(!filterItem.length){
                         cartItems.push({
-                            id: req.body.id,
+                            productId: req.body.productId,
                             count: +req.body.count
                         });
                         total += (+req.body.count * item.price);
                     }
                     else{
                         cartItems = cartItems.map(cartItem => {
-                            if(cartItem.id === req.body.id){
+                            if(cartItem.productId === req.body.productId){
                                 cartItem.count += +req.body.count;
                                 // Updating total with updated grocery Item count in cart
                                 total += (+req.body.count * item.price);
@@ -134,10 +134,14 @@ router.get('/cart', passport.authenticate('jwt', {session: false}), (req, res) =
     Cart.findOne({emailId: req.user.email}, "-__v").then(cart => {
         if(!cart){
             res.status(200).json({
+                success: false,
                 message: "No active cart found for LoggedIn user"
             })
         }else{
-            res.status(200).json(cart)
+            res.status(200).json({
+                success: true,
+                cart: cart
+            })
         }
     }).catch(err => {
         res.status(500).status({errorMessage: "Internal server error"});
@@ -148,14 +152,14 @@ router.get('/cart', passport.authenticate('jwt', {session: false}), (req, res) =
 //@access: PRIVATE
 //@description: Remove grocery Item to cart
 router.post('/cart/remove', passport.authenticate('jwt', {session: false}), (req, res) => {
-    GroceryItem.findById(req.body.id).then(item => {
+    GroceryItem.findById(req.body.productId).then(item => {
         Cart.findOne({emailId: req.user.email}, "-__v").then(cart => {
             if(!cart){
                 res.status(404).json({
                     message: "No cart found on username"
                 })
             }else{
-                const filterItem = cart.items.filter(cartItem => cartItem.id === req.body.id);
+                const filterItem = cart.items.filter(cartItem => cartItem.productId === req.body.productId);
                     if(!filterItem.length){
                         res.status(404).json({
                             message: "No item found on cart"
@@ -167,7 +171,7 @@ router.post('/cart/remove', passport.authenticate('jwt', {session: false}), (req
                     }else{
                       let total = cart.total;
                       let cartItems = cart.items.map((cartItem) => {
-                        if (cartItem.id === req.body.id) {
+                        if (cartItem.productId === req.body.productId) {
                           // Removing existing grocery Item total
                           total -= cartItem.count * item.price;
                           if (cartItem.count > +req.body.count)

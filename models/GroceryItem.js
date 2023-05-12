@@ -21,6 +21,10 @@ const GroceryItemSchema = new Schema({
     rating: {
         type: Number,
         required: true
+    },
+    imageUrl: {
+        type: String,
+        required: false
     }
 });
 
