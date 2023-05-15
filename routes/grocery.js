@@ -256,9 +256,31 @@ router.post('/order', passport.authenticate('jwt', {session: false}), async (req
 })
 
 //@type: GET
+//@path: /api/grocery/order/all
+//@access: PRIVATE
+//@description: Get all orders list for loggedIn user
+router.get('/order/all', passport.authenticate('jwt', {session: false}), async (req, res) => {
+    try {
+        const orders = await Order.find({emailId: req.user.email});
+        if(!orders){
+            res.status(200).json({
+                message: "No order found with provided orderId"
+            })
+        }else{
+            res.status(200).json({
+                success: true,
+                orders: orders
+            })
+        }
+    }catch(err){
+        res.status(500).status({errorMessage: "Internal server error"});
+    }
+})
+
+//@type: GET
 //@path: /api/grocery/order/:orderId
 //@access: PRIVATE
-//@description: Get Cart details for LoggedIn User
+//@description: Get Order details based on orderId
 router.get('/order/:orderId', passport.authenticate('jwt', {session: false}), async (req, res) => {
     try {
         const order = await Order.findById(req.params.orderId, "-__v");
@@ -267,7 +289,10 @@ router.get('/order/:orderId', passport.authenticate('jwt', {session: false}), as
                 message: "No order found with provided orderId"
             })
         }else{
-            res.status(200).json(order)
+            res.status(200).json({
+                success: true,
+                order: order
+            })
         }
     }catch(err){
         res.status(500).status({errorMessage: "Internal server error"});
