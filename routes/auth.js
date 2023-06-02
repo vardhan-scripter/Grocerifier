@@ -77,11 +77,11 @@ router.post('/login', (req, res) => {
                         payload,
                         secretOrKey,
                         { expiresIn: 3600},
-                        (err, token) => {
+                        (err, authToken) => {
                             if (err) throw err;
                             res.status(200).json({
-                                username: user.username,
-                                token: 'Bearer ' + token,
+                                userName: user.username,
+                                authToken: 'Bearer ' + authToken,
                                 expiresIn: 3600,
                             })
                         }
