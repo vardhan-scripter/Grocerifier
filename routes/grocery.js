@@ -261,10 +261,10 @@ router.post('/order', passport.authenticate('jwt', {session: false}), async (req
 //@description: Get all orders list for loggedIn user
 router.get('/order/all', passport.authenticate('jwt', {session: false}), async (req, res) => {
     try {
-        const orders = await Order.find({emailId: req.user.email});
+        const orders = await Order.find({emailId: req.user.email}).sort({'date': -1}).exec();
         if(!orders){
             res.status(200).json({
-                message: "No order found with provided orderId"
+                message: "No orders found"
             })
         }else{
             res.status(200).json({
